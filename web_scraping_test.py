@@ -1,12 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
+import os
 import re
-
-response = requests.get("https://www.foodnetwork.com/recipes/ree-drummond/nacho-cheese-casserole-5623818")   # Real website to scrape
-# response = requests.get("https://www.foodnetwork.com/recipes/food-network-kitchen/nacho-cheese-sauce-13583364")   # Real website to scrape
-
-# print(response.status_code, response.ok, response.reason)   # Check website status
-# print(response.text)   # Print full html
 
 # Get recipe name
 def get_recipe_name(soup):
@@ -31,11 +26,10 @@ def get_recipe_yield(soup):
 
 # Get ingredients
 def get_ingredients(soup):
-    # ingredients = [tag.string.strip() for tag in soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')]
     ingredients = soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')
     ingredients = [tag.get('value') for tag in soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')]
     
-    return ingredients[1:]
+    return ingredients[1:]   # The first 'ingredient' is 'deselect all'
 
 # Get directions
 def get_directions(soup):
@@ -44,6 +38,12 @@ def get_directions(soup):
 
 
 if __name__=='__main__':
+    response = requests.get("https://www.foodnetwork.com/recipes/ree-drummond/nacho-cheese-casserole-5623818")   # Real website to scrape
+    # response = requests.get("https://www.foodnetwork.com/recipes/food-network-kitchen/nacho-cheese-sauce-13583364")   # Real website to scrape
+
+    # print(response.status_code, response.ok, response.reason)   # Check website status
+    # print(response.text)   # Print full html
+
     # Save full html to file
     with open(r'recipe.html', 'w') as outfile:
         outfile.writelines(response.text)
