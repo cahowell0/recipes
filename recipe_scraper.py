@@ -1,37 +1,44 @@
-import requests
-from bs4 import BeautifulSoup as bs
-import os
-import re
 
-# Get recipe name
-def get_recipe_name(soup):
-    recipe_name = soup.find(class_="o-AssetTitle__a-HeadlineText")   # Get recipe name
-    return recipe_name.string
+class Recipe():
+    def __init__(self, soup):
+        self.recipe_name = self.scrape_recipe_name(soup)
+        self.recipe_level = self.scrape_recipe_level(soup)         # Might want to turn this into an int in the future
+        self.recipe_total_time, self.recipe_active_time = self.scrape_recipe_times(soup)    # Might want to turn these into ints in the future
+        self.recipe_yield = self.scrape_recipe_yield(soup)         # Not sure if this one can be made an int
+        self.ingredients = self.scrape_ingredients(soup)
+        self.directions = self.scrape_directions(soup)
+        self.num_ingredients = len(self.ingredients)
+        self.num_directions = len(self.directions)
 
-# Get recipe level
-def get_recipe_level(soup):
-    recipe_level = soup.find(class_='o-RecipeInfo__a-Headline', string='Level:')
-    return recipe_level.next_sibling.next_sibling.string
+    # Scrape recipe name
+    def scrape_recipe_name(self, soup):
+        recipe_name = soup.find(class_="o-AssetTitle__a-HeadlineText")   # Get recipe name
+        return recipe_name.string
 
-# Get recipe time(s)
-def get_recipe_times(soup):
-    recipe_total_time = soup.find(class_='o-RecipeInfo__a-Description m-RecipeInfo__a-Description--Total')
-    recipe_active_time = soup.find(class_='o-RecipeInfo__a-Headline', string='Active:')
-    return recipe_total_time.string, recipe_active_time.next_sibling.next_sibling.string
+    # Scrape recipe level
+    def scrape_recipe_level(self, soup):
+        recipe_level = soup.find(class_='o-RecipeInfo__a-Headline', string='Level:')
+        return recipe_level.next_sibling.next_sibling.string
 
-# Get yield
-def get_recipe_yield(soup):
-    recipe_yield = soup.find(class_='o-RecipeInfo__a-Headline', string='Yield:')
-    return recipe_yield.next_sibling.next_sibling.string
+    # Scrape recipe time(s)
+    def scrape_recipe_times(self, soup):
+        recipe_total_time = soup.find(class_='o-RecipeInfo__a-Description m-RecipeInfo__a-Description--Total')
+        recipe_active_time = soup.find(class_='o-RecipeInfo__a-Headline', string='Active:')
+        return recipe_total_time.string, recipe_active_time.next_sibling.next_sibling.string
 
-# Get ingredients
-def get_ingredients(soup):
-    ingredients = soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')
-    ingredients = [tag.get('value') for tag in soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')]
-    
-    return ingredients[1:]   # The first 'ingredient' is 'deselect all'
+    # Scrape yield
+    def scrape_recipe_yield(self, soup):
+        recipe_yield = soup.find(class_='o-RecipeInfo__a-Headline', string='Yield:')
+        return recipe_yield.next_sibling.next_sibling.string
 
-# Get directions
-def get_directions(soup):
-    directions = [tag.string.strip() for tag in soup.find_all(class_='o-Method__m-Step')]
-    return directions
+    # Scrape ingredients
+    def scrape_ingredients(self, soup):
+        ingredients = soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')
+        ingredients = [tag.get('value') for tag in soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')]
+
+        return ingredients[1:]   # The first 'ingredient' is 'deselect all'
+
+    # Scrape directions
+    def scrape_directions(self, soup):
+        directions = [tag.string.strip() for tag in soup.find_all(class_='o-Method__m-Step')]
+        return directions
