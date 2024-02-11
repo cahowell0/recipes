@@ -1,55 +1,49 @@
-import recipe_crawler
+import recipe_crawler as rc
+import string
 import time
+import os
 
 if __name__=='__main__':
     # Link to all recipes in alphabetical order
+    to_file = 'foodnetwork.html'
     web_address = 'https://www.foodnetwork.com'
     all_recipes = web_address + '/recipes/recipes-a-z'
+    recipe_list = []   # List to hold all Recipe objects
 
-    # Get crawl permissions
-    # time1 = time.perf_counter()
+    if not os.path.exists(to_file):
+        # Get crawl permissions        
+        rc.check_valid_website(web_address, robots=True)
 
-    recipe_crawler.check_valid_website(web_address, robots=True)
-    # time2 = time.perf_counter()
-    # print('check valid website:', time2 - time1)
+        # Check if website urls valid
+        rc.check_valid_website(all_recipes)
 
-    recipe_crawler.check_valid_website(all_recipes)
-    # time3 = time.perf_counter()
-    # print('check valid website (all recipes):', time3 - time2)
+        # Check website crawl permissions
+        rc.check_crawl_permission(web_address, ['/', '/content'])
 
-    recipe_crawler.check_crawl_permission(web_address, ['/', '/content'])
-    # time4 = time.perf_counter()
-    # print('check crawl permission:', time4 - time3)
+    # Get link to first recipe on foodnetwork.com
+    recipe_url = rc.get_first_recipe_link(all_recipes, to_file, crawl_delay=0.25)
+    end = False
+    count = 0
+    names_list = []   # Will hold names of recipes with punctuation / capitals removed
+    while not end:
+        # Scrape recipe
+        print(recipe_url)
+        new_recipe = rc.scrape_recipes(recipe_url, to_file, names_list, crawl_delay=0.25)
+        print('#########')
+        if new_recipe:   # Only add recipes that aren't already in names_list
+            recipe_list.append(new_recipe)
+            
+            # Append recipe name with no capitals or punctuation
+            names_list.append(new_recipe.recipe_name.translate(str.maketrans('', '', string.punctuation)).lower())
 
-    first_recipe = recipe_crawler.get_first_recipe(all_recipes)
-    # time5 = time.perf_counter()
-    # print('get first recipe:', time5 - time4)
+        # Crawl to next recipe
+        # print('-----', recipe_url)
+        recipe_url = rc.get_next_recipe(recipe_url, to_file, crawl_delay=0.25)
 
-    # recipe_crawler.scrape_recipes()
+        count += 1
+        print(count)
 
+        if len(names_list) > 5 or count > 5:
+            end = 1   # Figure out when to stop
 
-
-
-
-    ##############################################
-    ##############################################
-    ##############################################
-
-
-
-    # response = requests.get("https://www.foodnetwork.com/recipes/ree-drummond/nacho-cheese-casserole-5623818")   # Real website to scrape
-    # # response = requests.get("https://www.foodnetwork.com/recipes/food-network-kitchen/nacho-cheese-sauce-13583364")   # Real website to scrape
-
-    # # Save full html to file
-    # with open(r'recipe.html', 'w') as outfile:
-    #     outfile.writelines(response.text)
-
-    # with open(r'recipe.html', 'r') as infile:
-    #     soup = bs(infile, 'html.parser')
-        # print(recipe_scraper.scrape_recipe_name(soup))   # Print recipe name
-        # print(recipe_scraper.scrape_recipe_level(soup))   # Print recipe level
-    #     print(recipe_scraper.scrape_recipe_times(soup))   # Print recipe times
-    #     print(recipe_scraper.scrape_recipe_yield(soup))   # Print recipe yield
-    #     print(recipe_scraper.scrape_ingredients(soup))   # Print recipe ingredients
-    #     print(recipe_scraper.scrape_directions(soup))   # Print recipe directions
-
+    print(names_list)
