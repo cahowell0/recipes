@@ -38,6 +38,7 @@ class Recipe():
     # Scrape ingredients
     def scrape_ingredients(self, soup):
         ingredients = soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')
+        print(ingredients)
         ingredients = [tag.get('value') for tag in soup.find_all(class_='o-Ingredients__a-Ingredient--Checkbox')]
 
         return ingredients[1:]   # The first 'ingredient' is 'deselect all'
