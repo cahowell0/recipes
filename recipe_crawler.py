@@ -13,6 +13,7 @@ def check_valid_website(web_address, robots=False):
         try:
             robots_response = requests.head(web_address)
             robots_response.raise_for_status()
+            print('robots.txt exists')
             return True
         except requests.exceptions.RequestException as e:
             print(f'Error checking validity: {e}')
@@ -21,13 +22,14 @@ def check_valid_website(web_address, robots=False):
         try:
             response = requests.head(web_address)
             response.raise_for_status()
+            print('Website accessed')
             return True
         except requests.exceptions.RequestException as e:
             print(f'Error checking validity: {e}')
             return False
 
 # Check if allowed to access page + crawl delay
-def check_crawl_permission(web_address, page_list=['/']):
+def check_crawl_permission(web_address, page_list=['']):
     rp = robotparser.RobotFileParser()
     rp.set_url(web_address + '/robots.txt')
     rp.read()
@@ -65,57 +67,64 @@ def get_first_recipe_link(page_url, to_file, crawl_delay=0.5):
 
 # Scrape recipes
 def scrape_recipes(page_url, to_file, names_list, crawl_delay=0.5):
-    get_recipe_list(page_url, to_file, names_list, crawl_delay=0.5)
-    # current = None
-    # while not current:
-    #     # Download page source
-    #     page_source = requests.get(page_url).text
-    #     save_html(to_file, page_source)   # Save html to file
-
-    #     time.sleep(crawl_delay)   # Delay between crawls
-    #     soup = bs(page_source, 'html.parser')
-    #     current = soup.find(class_='o-AssetTitle__a-HeadlineText').text   # Find recipe name
-    #     # print(current)
-
-    #     # Check if recipe is duplicate
-    #     if current.translate(str.maketrans('', '', string.punctuation)).lower() in names_list:
-    #         # print(f'{current} already in list')
-    #         return None
-        
-    #     else:
-    #         # If new recipe, scrape and save
-    #         with open(to_file, 'r') as infile:
-    #             soup = bs(infile, 'html.parser')
-    #             recipe = Recipe(page_url, soup)   # Create Recipe object
-
-    #             return recipe
-            
-def get_recipe_list(page_url, to_file, names_list, crawl_delay):
+    # get_recipe_list(page_url, to_file, names_list, crawl_delay=0.5)
     current = None
     while not current:
-        uls = []    
+        # Download page source
         page_source = requests.get(page_url).text
-        save_html(to_file, page_source)
+        save_html(to_file, page_source)   # Save html to file
+        # TODO: Change this so we read from the to_file
 
-        time.sleep(crawl_delay)
+        time.sleep(crawl_delay)   # Delay between crawls
         soup = bs(page_source, 'html.parser')
-        current = soup.find_all('ul')
-        print(page_url)
-        print(f'{current = }')
-        # start = soup.find('ul')
-        # for next_sibling in start.findNextSiblings():
-        #     print(next_sibling)
-        #     if next_sibling.name == 'ul':
-        #         uls.append(next_sibling)
-        # lis = [li for ul in uls for li in ul.findAll('li')]
-        # print(uls)
-        # print(lis)
 
+        current = soup.find(class_='wprm-recipe-name wprm-block-text-bold')
+        if current:
+            current = current.text
+        else:
+            print('skip')
+            return None
 
+        # Check if recipe is duplicate
+        if current.translate(str.maketrans('', '', string.punctuation)).lower() in names_list:
+            print(f'{current} already in list')
+            return None
+        
+        else:
+            # If new recipe, scrape and save
+            with open(to_file, 'r') as infile:
+                soup = bs(infile, 'html.parser')
+                recipe = Recipe(page_url, soup)   # Create Recipe object
+
+                return recipe
+            
+def get_url_list(page_url, to_file, names_list, crawl_delay):
+    # Get list of all urls to recipes
+    current = None
+    next_page = False
+    while not current:
+        # Download page source
+        page_source = requests.get(page_url).text
+        save_html(to_file, page_source)   # Save html to file
+        # TODO: Change this so we read from the to_file
+
+        time.sleep(crawl_delay)   # Delay between crawls
+        soup = bs(page_source, 'html.parser')
+        current = soup.find_all(class_='horizontal')   # html class containing links to recipes
+
+        url_list = [c.a.get('href') for c in current]   # Get all urls on current page
+
+        # TODO: update names_list for future
+
+        # Check if more pages of recipes
+        next_page = soup.find(class_='next page-numbers')
+        if next_page:
+            next_page = next_page.get('href')
+
+        return url_list, next_page
         
 
-
-
+# Probably don't need this one
 # Find next recipe
 def get_next_recipe(page_url, to_file, crawl_delay=0.5):
     current = None

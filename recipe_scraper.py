@@ -14,8 +14,8 @@ class Recipe():
 
     # Scrape recipe name
     def scrape_recipe_name(self, soup):
-        recipe_name = soup.find(class_="o-AssetTitle__a-HeadlineText")   # Get recipe name
-
+        recipe_name = soup.find(class_="wprm-recipe-name wprm-block-text-bold").text   # Get recipe name
+        print(recipe_name)
         return str(recipe_name.string)
 
     # Scrape recipe level
