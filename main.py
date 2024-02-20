@@ -1,17 +1,15 @@
 import recipe_crawler as rc
+import pickle
 import string
 import time
 import os
 
 if __name__=='__main__':
-    # Link to all recipes in alphabetical order
-    # to_file = 'foodnetwork.html'
-    # web_address = 'https://www.foodnetwork.com'
-    # all_recipes = web_address + '/recipes/recipes-a-z'
-
     # Link to 30 minute recipes
     to_file = 'joc.html'
+    url_file = 'joc_urls.p'
     web_address = 'https://www.justonecookbook.com'
+    breaddress = 'https://www.justonecookbook.com/japanese-milk-bread-shokupan/'
     all_recipes = web_address + '/tags/under-30-minutes/'
     recipe_list = []   # List to hold all Recipe objects
 
@@ -31,23 +29,36 @@ if __name__=='__main__':
     url_list = []   # Will hold urls of all recipes
 
     end = False
-    # TODO: Save this list so we don't have to iterate through it every time
-    while not end:
-        # Get urls for all recipes
-        urls, all_recipes = rc.get_url_list(all_recipes, to_file, names_list, crawl_delay=0.25)
-        url_list.extend(urls)
+    if not os.path.exists(url_file):
 
-        if all_recipes is None:
-            end = 1
+        while not end:
+            # Get urls for all recipes
+            urls, all_recipes = rc.get_url_list(all_recipes, to_file, names_list, crawl_delay=0.25)
+            url_list.extend(urls)
 
-    print(len(url_list))
+            if all_recipes is None:
+                end = 1
 
+
+        # Save urls as pickle file for quick access
+        with open(url_file, 'wb') as outfile:
+            pickle.dump(url_list, outfile)
+
+    else:
+        # If we've already found the urls, load them in as list
+        with open(url_file, 'rb') as infile:
+            url_list = pickle.load(infile)
+            url_list.append(breaddress)
+    
     # Scrape each url
-    for url in url_list[:2]:
+    i = 0
+    for url in url_list[:1]:
+        print(i)
         new_recipe = rc.scrape_recipes(url, to_file, names_list, crawl_delay=0.25)
+        i += 1
         
     
-        """
+    """
         new_recipe = rc.scrape_recipes(all_recipes, to_file, names_list, crawl_delay=0.25)
 
         if new_recipe:   # Only add recipes that aren't already in names_list
@@ -60,4 +71,4 @@ if __name__=='__main__':
         recipe_url = rc.get_next_recipe(recipe_url, to_file, crawl_delay=0.25)
         """
 
-    print(names_list)
+    # print(url_list[:2])

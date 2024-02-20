@@ -78,11 +78,11 @@ def scrape_recipes(page_url, to_file, names_list, crawl_delay=0.5):
         time.sleep(crawl_delay)   # Delay between crawls
         soup = bs(page_source, 'html.parser')
 
+        # Find recipe name
         current = soup.find(class_='wprm-recipe-name wprm-block-text-bold')
-        if current:
+        if current:   # Get recipe name if exists
             current = current.text
         else:
-            print('skip')
             return None
 
         # Check if recipe is duplicate
