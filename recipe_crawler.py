@@ -91,11 +91,17 @@ def scrape_recipes(page_url, to_file, names_list, crawl_delay=0.5):
             return None
         
         else:
+            recipe = None
             # If new recipe, scrape and save
             with open(to_file, 'r') as infile:
                 soup = bs(infile, 'html.parser')
-                recipe = Recipe(page_url, soup)   # Create Recipe object
-
+                try:
+                    recipe = Recipe(page_url, soup)
+                # recipe = Recipe(page_url, soup)   # Create Recipe object
+                except:
+                    # print('error parsing recipe')
+                    pass
+            if recipe is not None:
                 return recipe
             
 def get_url_list(page_url, to_file, names_list, crawl_delay):
