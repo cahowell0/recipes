@@ -11,7 +11,7 @@ def get_unique_ingredients(recipe_list):
     for recipe in recipe_list:
         unique_ingredients.update(list(recipe.ingredients.keys()))
 
-    return list(unique_ingredients)
+    return sorted(list(unique_ingredients))
 
 def set_ingredients_matrix(recipe_list, unique_ingredients):
     for recipe in recipe_list:

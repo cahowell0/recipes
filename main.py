@@ -1,4 +1,5 @@
 import recipe_crawler as rc
+from user_class import User
 import utils
 import pickle
 import string
@@ -72,7 +73,6 @@ if __name__=='__main__':
     # Get all unique ingredients
     unique_ingredients = utils.get_unique_ingredients(recipe_list)
 
-
     # Print information about each recipe
     # for i, recipe in enumerate(recipe_list):
     #     if i % 3 == 0:
@@ -81,9 +81,15 @@ if __name__=='__main__':
 
     utils.set_ingredients_matrix(recipe_list, unique_ingredients)
 
-    print(unique_ingredients)
-    print(len(recipe_list))
-    print((recipe_list[0].ingredients_matrix))
-    print(len(recipe_list[0].ingredients))
+    # print(unique_ingredients)
+    # print(len(recipe_list))
+    # print((recipe_list[0].ingredients_matrix))
+    # print(len(recipe_list[0].ingredients))
+
+    christian = User(unique_ingredients) 
+    # print(christian.taste_profile_dict)
+    print(len(unique_ingredients))
+    print('\n')
+    print(len(christian.taste_profile_weights))
 
     # os.remove(pickle_recipes)
