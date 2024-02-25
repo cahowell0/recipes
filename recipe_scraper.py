@@ -119,7 +119,8 @@ class Recipe():
             raise ValueError(f'No ingredients found for recipe {self.recipe_name}')
 
         # Create list of ingredients
-        ingredients_list = [ingredient.text for ingredient in ingredients_html]
+        pattern = re.compile(r'.+?(?= \()')   # This will match the ingredients up until the opening parenthesis
+        ingredients_list = [re.match(pattern, ingredient.text).group() if re.match(pattern, ingredient.text) else ingredient.text for ingredient in ingredients_html]   # This ugly code adds the ingredients without the paraentheses
 
         # Scrape amount for each ingredient
         amounts_html = soup.find_all(class_='wprm-recipe-ingredient-amount')
