@@ -11,4 +11,9 @@ def get_unique_ingredients(recipe_list):
     for recipe in recipe_list:
         unique_ingredients.update(list(recipe.ingredients.keys()))
 
-    return unique_ingredients
+    return list(unique_ingredients)
+
+def set_ingredients_matrix(recipe_list, unique_ingredients):
+    for recipe in recipe_list:
+        recipe.set_ingredients(unique_ingredients)
+

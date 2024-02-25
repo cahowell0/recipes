@@ -79,7 +79,11 @@ if __name__=='__main__':
     #         print(recipe, sep='\n')
     #         pass
 
+    utils.set_ingredients_matrix(recipe_list, unique_ingredients)
+
     print(unique_ingredients)
     print(len(recipe_list))
+    print((recipe_list[0].ingredients_matrix))
+    print(len(recipe_list[0].ingredients))
 
     # os.remove(pickle_recipes)

@@ -1,4 +1,5 @@
 from recipe_scraper import Recipe
+import numpy
 
 class User():
     def __init__(self):

@@ -1,7 +1,8 @@
 import string
 import re
-from fractions import Fraction
 import unicodedata
+import numpy as np
+from fractions import Fraction
 
 class Recipe():
     def __init__(self, url, soup):
@@ -15,7 +16,7 @@ class Recipe():
         self.num_ingredients = len(self.ingredients)
         self.num_instructions = len(self.instructions)
 
-        # TODO: Create print info 
+        self.ingredients_matrix = []
 
     # Scrape recipe name
     def scrape_recipe_name(self, soup):
@@ -172,3 +173,9 @@ class Recipe():
 
         return f'{name_str}\n{num_ingredients_str}\n{num_instructions_str}'
         
+    def set_ingredients(self, unique_ingredients):
+        self.ingredients_matrix = np.zeros(len(unique_ingredients))
+
+        for i, ingredient in enumerate(unique_ingredients):
+            if ingredient in self.ingredients:
+                self.ingredients_matrix[i] = 1
