@@ -1,8 +1,9 @@
 import recipe_crawler as rc
 from user_class import User
-import utils
+import numpy as np
 import pickle
 import string
+import utils
 import time
 import os
 
@@ -16,6 +17,7 @@ if __name__=='__main__':
     all_recipes = web_address + '/tags/under-30-minutes/'
     recipe_list = []   # List to hold all Recipe objects
 
+    # Check website validity and permissions
     if not os.path.exists(html_file):
         # Get crawl permissions        
         rc.check_valid_website(web_address, robots=True)
@@ -29,6 +31,7 @@ if __name__=='__main__':
     names_list = []   # Will hold names of recipes with punctuation / capitals removed
     url_list = []   # Will hold urls of all recipes
 
+    # Scrape urls for all recipes, or load urls if previously scraped
     if not os.path.exists(url_file):
         while True:
             # Get urls for all recipes
@@ -49,6 +52,7 @@ if __name__=='__main__':
             url_list = pickle.load(infile)
             url_list.append(breaddress)
     
+    # Scrape all recipes, or load if already scraped
     if not os.path.exists(pickle_recipes):
         # Scrape each url
         print('Scraping recipes')
@@ -72,24 +76,24 @@ if __name__=='__main__':
 
     # Get all unique ingredients
     unique_ingredients = utils.get_unique_ingredients(recipe_list)
-
-    # Print information about each recipe
-    # for i, recipe in enumerate(recipe_list):
-    #     if i % 3 == 0:
-    #         print(recipe, sep='\n')
-    #         pass
-
     utils.set_ingredients_matrix(recipe_list, unique_ingredients)
 
-    # print(unique_ingredients)
-    # print(len(recipe_list))
-    # print((recipe_list[0].ingredients_matrix))
-    # print(len(recipe_list[0].ingredients))
+    recipes_ingredients_matrix = utils.get_recipes_ingredients_matrix(recipe_list, len(unique_ingredients))
+    with open('new_text.txt', 'w') as file:
+        np.savetxt(file, recipes_ingredients_matrix)
 
-    christian = User(unique_ingredients) 
+    # print(recipes_ingredients_matrix)
+
+
+    # USER STUFF
+    user_id = 'Christian'
+    christian = User(unique_ingredients, user_id) 
+
+    user_id = 'Josh'
+    josh = User(unique_ingredients, user_id)
     # print(christian.taste_profile_dict)
-    print(len(unique_ingredients))
-    print('\n')
-    print(len(christian.taste_profile_weights))
+    print(josh.taste_profile_dict)
+    print('*'*88)
+    print(josh.taste_profile_weights)
 
     # os.remove(pickle_recipes)

@@ -5,7 +5,7 @@ import requests
 import numpy as np
 from urllib import robotparser
 from bs4 import BeautifulSoup as bs
-from recipe_scraper import Recipe
+from recipe_class import Recipe
 
 # Check for valid website
 def check_valid_website(web_address, robots=False):
