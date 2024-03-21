@@ -6,6 +6,8 @@ import string
 import utils
 import time
 import os
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import NearestNeighbors
 
 if __name__=='__main__':
     # Link to 30 minute recipes
@@ -83,17 +85,129 @@ if __name__=='__main__':
         np.savetxt(file, recipes_ingredients_matrix)
 
     # print(recipes_ingredients_matrix)
+    user_list = []
+    for i in range(10):
+        user_list.append(User(unique_ingredients, i, recipe_list))
+
+    
+
+    def dictionary_user_scores():
+        key_names = [recipe_list[i].recipe_name for i in range(len(recipe_list))]
+        subkey_names = (f"score{i}" for i in range (1,6))
+
+        my_dict = {key: {subkey: 0} for subkey in subkey_names for key in key_names}
+
+        return my_dict
+
+
+    # print(user_list[0].taste_profile_dict)
+
+    user_ingredient_score = []
+    for recipe in recipe_list:
+        for user in user_list:
+            recipe_score = np.sum(recipe.ingredients_matrix * user.taste_profile_weights) / np.sum(recipe.ingredients_matrix)
+            if recipe_score <= 0.2:
+                recipe_rating = 1
+            elif recipe_score <= 0.4:
+                recipe_rating = 2
+            elif recipe_score <= 0.6:
+                recipe_rating = 3
+            elif recipe_score <= 0.8:
+                recipe_rating = 4
+            else:
+                recipe_rating = 5
+            
+            user.recipe_scores[recipe.recipe_name] = recipe_rating
+            print(user.recipe_scores[recipe.recipe_name]) 
+
+    print(user_ingredient_score)
+
+    # TODO: maybe just delete this if the sklearn thig works
+    def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
+        num_points = matrix.shape[0]
+        
+        for _ in range(iterations):
+            # Calculate pairwise Euclidean distances between points using broadcasting
+            distances = np.linalg.norm(matrix[:, np.newaxis, :] - matrix, axis=2)
+            
+            # Set diagonal elements to infinity to exclude self-distances
+            np.fill_diagonal(distances, np.inf)
+            
+            # Find the index of the nearest neighbor for each point
+            nearest_neighbors = np.argmin(distances, axis=1)
+            
+            # Update each point towards its nearest neighbor
+            for i in range(num_points):
+                neighbor_index = nearest_neighbors[i]
+                direction = matrix[neighbor_index] - matrix[i]
+                matrix[i] += learning_rate * direction
+                
+        return matrix
+
+    # FIXME: havent actually checked if this works, run some tests
+    def cosine_similarity_neighbors(matrix):
+        num_points = matrix.shape[0]
+        #calculate the cosine similarity for all pts
+        cos_sim = cosine_similarity(matrix, complete_matrix)
+        #use the highest similarty as the index for the nearest neighbor
+        nearest_neighbors_indices = np.argmax(cos_sim, axis=1)
+        #run nearest neigbor for the whole matrix
+        for i in range(num_points):
+            direction = matrix[nearest_neighbors_indices] - matrix[i]
+            matrix[i] += learning_rate * direction
+            
+
+        for i, idx in enumerate(nearest_neighbors_indices):
+            matrix[i][np.isnan(matrix[i])] = complete_matrix[idx][np.isnan(matrix[i])]
+        return matrix
+
+# FIXME: we haven't integrated this function for the user class yet 
+   def fill_missing_values_with_avg_nearest_neighbors_from_set(incomplete_matrix, complete_matrices, k=5):
+    # Replace NaN values with zeros (or any other value)
+    incomplete_matrix[np.isnan(incomplete_matrix)] = 0
+
+    # Initialize list to store nearest neighbor distances and indices
+    all_distances = []
+    all_indices = []
+
+    # Compute nearest neighbors for each complete matrix
+    for complete_matrix in complete_matrices:
+        nn = NearestNeighbors(n_neighbors=k)
+        nn.fit(complete_matrix)
+        distances, indices = nn.kneighbors(incomplete_matrix)
+        all_distances.append(distances)
+        all_indices.append(indices)
+
+    # Replace NaN values in incomplete matrix with average of nearest neighbors from each complete matrix
+    filled_matrix = incomplete_matrix.copy()
+    for i in range(len(filled_matrix)):
+        nan_indices = np.isnan(incomplete_matrix[i])
+        if np.any(nan_indices):
+            avg_values = np.zeros_like(filled_matrix[i][nan_indices], dtype=float)
+            for distances, indices in zip(all_distances, all_indices):
+                nearest_neighbors = np.take_along_axis(complete_matrices[0][indices[i], :][:, nan_indices], indices, axis=1)
+                avg_values += np.nanmean(nearest_neighbors, axis=1)
+            avg_values /= len(complete_matrices)
+            filled_matrix[i][nan_indices] = avg_values
+
+    return filled_matrix
+
+    # TODO: create a test set of matricies and initialize a new user to test
+
+    # TODO: Start to learn how we can set up a basic user interface in python that we can use to test our new user initialization
+
+    # TODO: If it seems to work for a genral case, brianstorm some edge cases that we can use to AB test the algorithm
+
 
 
     # USER STUFF
     user_id = 'Christian'
-    christian = User(unique_ingredients, user_id) 
+    christian = User(unique_ingredients, user_id, recipe_list) 
 
     user_id = 'Josh'
-    josh = User(unique_ingredients, user_id)
-    # print(christian.taste_profile_dict)
-    print(josh.taste_profile_dict)
-    print('*'*88)
-    print(josh.taste_profile_weights)
+    josh = User(unique_ingredients, user_id, recipe_list)
+    # print(josh.taste_profile_dict)
+    # print('*'*88)
+    # print(josh.taste_profile_weights)
 
     # os.remove(pickle_recipes)

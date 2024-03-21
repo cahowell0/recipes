@@ -23,8 +23,6 @@ def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
     return matrix
 
 
-
-
 if __name__ == "__main__":
 
     # Example usage
