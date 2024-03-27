@@ -2,10 +2,12 @@ import os
 import pickle
 import tkinter
 import customtkinter
+import utils
 import recipe_crawler as rc
+from user_class import User
 
 #download function
-def startDownload():
+def startDownload(recipes_list):
     try:
         recipe_link = link.get()
         # recipeObject = 
@@ -16,7 +18,6 @@ def startDownload():
         url_file = 'recipe_links.p'
         pickle_recipes = 'pickle_recipes_file.p'
         all_recipes = web_address + '/tags/under-30-minutes/'
-        recipe_list = []   # List to hold all Recipe objects
 
 
         if not os.path.exists(html_file):
@@ -93,17 +94,35 @@ def noGo_ingredients():
     print("Select ingredients you do not like:", dislike_options)
 
 #Find any allergies
-def allergy():
+def allergy_finder():
     allergy_options = [allergies[index] for index in allergies_listbox.curselection()]
     other_value = other_entry.get()
     print("Select any alergies you may have: ", allergy_options)
-    print("Input here for other: ", other_value) 
+    print("Input here for other: ", other_value)
 
 #Score options funtion
 def recipe_score():
     score_option = score.get()
     print("What would you rate this recipe?:", score_option)
 
+#Save options function for dislikes
+def save_selection():
+    selected_indices = dislikes_listbox.curselection()
+    selected_items = [dislikes_listbox.get(index) for index in selected_indices]
+    print("Selected items:", selected_items)
+
+
+def dislike_items_selected(event):
+    pass
+
+def create_user():
+    new_user = User(unique_ingredients, userName.get(), recipe_list)
+    print('hi')
+    print(new_user.user_id)
+    
+    #TODO: Change allergy ingredients to 0
+
+    
 customtkinter.set_appearance_mode('Dark')
 customtkinter.set_default_color_theme('blue')
 
@@ -114,14 +133,18 @@ app.title('Food app')
 title = customtkinter.CTkLabel(app, text='Recipe', font=('arial', 36))
 title.pack(padx=10, pady=50)
 
+
 #get url
 url_var = tkinter.StringVar()
 link = customtkinter.CTkEntry(app, placeholder_text='Import recipes')
 link.pack()
 
 #download the url
+recipe_list = []   # List to hold all Recipe objects
 download = customtkinter.CTkButton(app, text = "Download", command=startDownload)
 download.pack(padx=10,pady=10)
+
+unique_ingredients = utils.get_unique_ingredients(recipe_list)
 
 #download progress bar
 # progress_percent = customtkinter.CTkLabel(app, text='0%')
@@ -136,8 +159,15 @@ progressBar.pack(padx=10, pady=10)
 
 # TODO: "Create a profile for a user"
 name = tkinter.StringVar()
-userName = customtkinter.CTkEntry(app, placeholder_text='What is your name?')
+userName = customtkinter.CTkEntry(app, placeholder_text='What is your name?', textvariable=name)
+name_button = tkinter.Button(app, text = "Enter", command=create_user)
+userName.bind()
 userName.pack()
+name_button.pack()
+
+
+print('username', userName)
+
 
 # TODO: "Have them input preferences, likes and dislikes to help initialize their taste"
 dislikes_listbox = tkinter.Listbox(app, selectmode=tkinter.MULTIPLE)
@@ -147,6 +177,7 @@ dislike_var.set(dislikes)
 for option in dislikes:
     dislikes_listbox.insert(tkinter.END, option)
 dislike_button = tkinter.Button(app, text="Display Selected", command=noGo_ingredients)
+dislikes_listbox.bind('<<ListboxSelect>>', dislike_items_selected)
 dislikes_listbox.pack(pady=20)
 dislike_button.pack()
 
@@ -158,7 +189,7 @@ allergy.set(allergies[0])
 for option in allergies:
     allergies_listbox.insert(tkinter.END, option)
 other_entry = tkinter.Entry(app)
-allergy_button = tkinter.Button(app, text="Display Allergies", command=allergy)
+allergy_button = tkinter.Button(app, text="Display Allergies", command=allergy_finder)
 allergies_listbox.pack(pady=10)
 other_entry.pack(pady=5)
 allergy_button.pack(pady=10)

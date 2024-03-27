@@ -89,7 +89,6 @@ if __name__=='__main__':
     user_list = []
     for i in range(10):
         user_list.append(User(unique_ingredients, i, recipe_list))
-
     
 
     def dictionary_user_scores():
@@ -124,7 +123,7 @@ if __name__=='__main__':
     print(user_ingredient_score)
 
     # TODO: maybe just delete this if the sklearn thig works
-    def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
+    """def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
         num_points = matrix.shape[0]
         
         for _ in range(iterations):
@@ -191,20 +190,19 @@ if __name__=='__main__':
                 avg_values /= len(complete_matrices)
                 filled_matrix[i][nan_indices] = avg_values
 
-        return filled_matrix
+        return filled_matrix"""
 
     # TODO: create a test set of matricies and initialize a new user to test
 
-    # TODO: Start to learn how we can set up a basic user interface in python that we can use to test our new user initialization
 
     # TODO: If it seems to work for a genral case, brianstorm some edge cases that we can use to AB test the algorithm
 
-
+    # FIXME: "Learn to use SciKitlearn Cosine similarity and sklearn nearest neighbors, use those instead since they are probably better"
 
     # USER STUFF
     user_id = 'Christian'
     christian = User(unique_ingredients, user_id, recipe_list) 
-
+    
     user_id = 'Josh'
     josh = User(unique_ingredients, user_id, recipe_list)
     # print(josh.taste_profile_dict)
