@@ -11,6 +11,7 @@ from sklearn.neighbors import NearestNeighbors
 
 if __name__=='__main__':
     # Link to 30 minute recipes
+    # https://www.justonecookbook.com/tags/under-30-minutes
     html_file = 'joc.html'
     url_file = 'joc_urls.p'
     pickle_recipes = 'pickle_recipes.p'
@@ -162,35 +163,35 @@ if __name__=='__main__':
         return matrix
 
 # FIXME: we haven't integrated this function for the user class yet 
-   def fill_missing_values_with_avg_nearest_neighbors_from_set(incomplete_matrix, complete_matrices, k=5):
-    # Replace NaN values with zeros (or any other value)
-    incomplete_matrix[np.isnan(incomplete_matrix)] = 0
+    def fill_missing_values_with_avg_nearest_neighbors_from_set(incomplete_matrix, complete_matrices, k=5):
+        # Replace NaN values with zeros (or any other value)
+        incomplete_matrix[np.isnan(incomplete_matrix)] = 0
 
-    # Initialize list to store nearest neighbor distances and indices
-    all_distances = []
-    all_indices = []
+        # Initialize list to store nearest neighbor distances and indices
+        all_distances = []
+        all_indices = []
 
-    # Compute nearest neighbors for each complete matrix
-    for complete_matrix in complete_matrices:
-        nn = NearestNeighbors(n_neighbors=k)
-        nn.fit(complete_matrix)
-        distances, indices = nn.kneighbors(incomplete_matrix)
-        all_distances.append(distances)
-        all_indices.append(indices)
+        # Compute nearest neighbors for each complete matrix
+        for complete_matrix in complete_matrices:
+            nn = NearestNeighbors(n_neighbors=k)
+            nn.fit(complete_matrix)
+            distances, indices = nn.kneighbors(incomplete_matrix)
+            all_distances.append(distances)
+            all_indices.append(indices)
 
-    # Replace NaN values in incomplete matrix with average of nearest neighbors from each complete matrix
-    filled_matrix = incomplete_matrix.copy()
-    for i in range(len(filled_matrix)):
-        nan_indices = np.isnan(incomplete_matrix[i])
-        if np.any(nan_indices):
-            avg_values = np.zeros_like(filled_matrix[i][nan_indices], dtype=float)
-            for distances, indices in zip(all_distances, all_indices):
-                nearest_neighbors = np.take_along_axis(complete_matrices[0][indices[i], :][:, nan_indices], indices, axis=1)
-                avg_values += np.nanmean(nearest_neighbors, axis=1)
-            avg_values /= len(complete_matrices)
-            filled_matrix[i][nan_indices] = avg_values
+        # Replace NaN values in incomplete matrix with average of nearest neighbors from each complete matrix
+        filled_matrix = incomplete_matrix.copy()
+        for i in range(len(filled_matrix)):
+            nan_indices = np.isnan(incomplete_matrix[i])
+            if np.any(nan_indices):
+                avg_values = np.zeros_like(filled_matrix[i][nan_indices], dtype=float)
+                for distances, indices in zip(all_distances, all_indices):
+                    nearest_neighbors = np.take_along_axis(complete_matrices[0][indices[i], :][:, nan_indices], indices, axis=1)
+                    avg_values += np.nanmean(nearest_neighbors, axis=1)
+                avg_values /= len(complete_matrices)
+                filled_matrix[i][nan_indices] = avg_values
 
-    return filled_matrix
+        return filled_matrix
 
     # TODO: create a test set of matricies and initialize a new user to test
 
