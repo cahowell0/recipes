@@ -118,9 +118,9 @@ if __name__=='__main__':
                 recipe_rating = 5
             
             user.recipe_scores[recipe.recipe_name] = recipe_rating
-            print(user.recipe_scores[recipe.recipe_name]) 
+            # print(user.recipe_scores[recipe.recipe_name]) 
 
-    print(user_ingredient_score)
+    # print(user_ingredient_score)
 
     # TODO: maybe just delete this if the sklearn thig works
     """def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
@@ -161,7 +161,7 @@ if __name__=='__main__':
             matrix[i][np.isnan(matrix[i])] = complete_matrix[idx][np.isnan(matrix[i])]
         return matrix
 
-# FIXME: we haven't integrated this function for the user class yet 
+    # FIXME: we haven't integrated this function for the user class yet 
     def fill_missing_values_with_avg_nearest_neighbors_from_set(incomplete_matrix, complete_matrices, k=5):
         # Replace NaN values with zeros (or any other value)
         incomplete_matrix[np.isnan(incomplete_matrix)] = 0
@@ -193,11 +193,43 @@ if __name__=='__main__':
         return filled_matrix"""
 
     # TODO: create a test set of matricies and initialize a new user to test
+    
+    #create 10000 random users
+    userBase = list()
+    for i in range(10000):
+        userBase.append(np.random.rand((len(unique_ingredients))))
+        i += 1
 
+    #make the random taste preferences into a matrix
+    user_ingredients_matrix = np.zeros(len(unique_ingredients))   # Placeholder that will be deleted later
+    for user in userBase:
+        # Create matrix where each row containg the users preference for individual recipes
+        user_ingredients_matrix = np.vstack((user_ingredients_matrix, user))
+
+    # Delete the first row of zeros
+    user_ingredients_matrix = np.delete(user_ingredients_matrix, (0), axis=0)
+    print(user_ingredients_matrix)
 
     # TODO: If it seems to work for a genral case, brianstorm some edge cases that we can use to AB test the algorithm
 
+
+
     # FIXME: "Learn to use SciKitlearn Cosine similarity and sklearn nearest neighbors, use those instead since they are probably better"
+    # TODO: Steps: 
+    #   1. Recommend most popular recipe
+    #       -most percentage of scores > 3
+    #   2. If no rating is given, then look for users who liked the recipe and recommend their top recipe
+    #       -Time how long they are on the page, if > x time they made the recipe. If less, they did not makke it
+    #       -Take all users who gave recipe 4 or 5 and find all their other 4's and 5's then see what 3 recipies had the most high scores
+    #   3. Update according to the nearest 10 of those neighbors
+    #   4. Start giving scores for recipes based on user preferences as well as users also liked
+    #       - Calcualte ocmpatibility by giving them our predicted score for any given recipe
+    #   5. recommend similar reciepes as well  based on similar ingredients
+    #       - Identifying main carb or protien then listing as similar
+
+
+
+
 
     # USER STUFF
     user_id = 'Christian'

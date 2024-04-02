@@ -5,7 +5,7 @@ import customtkinter
 import utils
 import recipe_crawler as rc
 from user_class import User
-
+#this is fior fun
 #download function
 def startDownload(recipes_list):
     try:
@@ -159,12 +159,11 @@ progressBar.pack(padx=10, pady=10)
 
 # TODO: "Create a profile for a user"
 name = tkinter.StringVar()
-userName = customtkinter.CTkEntry(app, placeholder_text='What is your name?', textvariable=name)
+userName = customtkinter.CTkEntry(app, placeholder_text='What is your name?')
 name_button = tkinter.Button(app, text = "Enter", command=create_user)
 userName.bind()
 userName.pack()
 name_button.pack()
-
 
 print('username', userName)
 
@@ -176,7 +175,7 @@ dislikes = ["Tomatos", "Fish", "Mayo", "Cilantro", "Pickles"]
 dislike_var.set(dislikes)
 for option in dislikes:
     dislikes_listbox.insert(tkinter.END, option)
-dislike_button = tkinter.Button(app, text="Display Selected", command=noGo_ingredients)
+dislike_button = tkinter.Button(app, text="Enter", command=noGo_ingredients)
 dislikes_listbox.bind('<<ListboxSelect>>', dislike_items_selected)
 dislikes_listbox.pack(pady=20)
 dislike_button.pack()
@@ -184,12 +183,12 @@ dislike_button.pack()
 #Check for allergies
 allergies_listbox = tkinter.Listbox(app, selectmode=tkinter.MULTIPLE)
 allergy = tkinter.StringVar(app)
-allergies = ["Peanuts", "Gluten", "Milk", "Eggs", "Shellfish", "Other"]
+allergies = ["Peanuts", "Gluten", "Milk", "Eggs", "Shellfish"]
 allergy.set(allergies[0])
 for option in allergies:
     allergies_listbox.insert(tkinter.END, option)
-other_entry = tkinter.Entry(app)
-allergy_button = tkinter.Button(app, text="Display Allergies", command=allergy_finder)
+other_entry = customtkinter.CTkEntry(app, placeholder_text = "Other")
+allergy_button = tkinter.Button(app, text="Enter", command=allergy_finder)
 allergies_listbox.pack(pady=10)
 other_entry.pack(pady=5)
 allergy_button.pack(pady=10)
@@ -218,6 +217,3 @@ while app.mainloop():
     # TODO: "They input a score"
 
     pass
-
-
-
