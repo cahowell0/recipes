@@ -6,8 +6,8 @@ import string
 import utils
 import time
 import os
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.neighbors import NearestNeighbors
+from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity
+from sklearn.neighbors import NearestNeighbors as NearestNeighbors
 
 if __name__=='__main__':
     # Link to 30 minute recipes
@@ -101,23 +101,23 @@ if __name__=='__main__':
 
 
     # print(user_list[0].taste_profile_dict)
-
-    user_ingredient_score = []
-    for recipe in recipe_list:
-        for user in user_list:
-            recipe_score = np.sum(recipe.ingredients_matrix * user.taste_profile_weights) / np.sum(recipe.ingredients_matrix)
-            if recipe_score <= 0.2:
-                recipe_rating = 1
-            elif recipe_score <= 0.4:
-                recipe_rating = 2
-            elif recipe_score <= 0.6:
-                recipe_rating = 3
-            elif recipe_score <= 0.8:
-                recipe_rating = 4
-            else:
-                recipe_rating = 5
-            
-            user.recipe_scores[recipe.recipe_name] = recipe_rating
+    def assign_user_scores(user_ingredient_score):
+        user_ingredient_score = []
+        for recipe in recipe_list:
+            for user in user_list:
+                recipe_score = np.sum(recipe.ingredients_matrix * user.taste_profile_weights) / np.sum(recipe.ingredients_matrix)
+                if recipe_score <= 0.15:
+                    recipe_rating = 1
+                elif recipe_score <= 0.3:
+                    recipe_rating = 2
+                elif recipe_score <= 0.5:
+                    recipe_rating = 3
+                elif recipe_score <= 0.75:
+                    recipe_rating = 4
+                else:
+                    recipe_rating = 5
+                
+                user.recipe_scores[recipe.recipe_name] = recipe_rating
             # print(user.recipe_scores[recipe.recipe_name]) 
 
     # print(user_ingredient_score)
@@ -196,7 +196,7 @@ if __name__=='__main__':
     
     #create 10000 random users
     userBase = list()
-    for i in range(10000):
+    for i in range(1000):
         userBase.append(np.random.rand((len(unique_ingredients))))
         i += 1
 
@@ -208,24 +208,10 @@ if __name__=='__main__':
 
     # Delete the first row of zeros
     user_ingredients_matrix = np.delete(user_ingredients_matrix, (0), axis=0)
-    print(user_ingredients_matrix)
+    # print(user_ingredients_matrix)
 
     # TODO: If it seems to work for a genral case, brianstorm some edge cases that we can use to AB test the algorithm
 
-
-
-    # FIXME: "Learn to use SciKitlearn Cosine similarity and sklearn nearest neighbors, use those instead since they are probably better"
-    # TODO: Steps: 
-    #   1. Recommend most popular recipe
-    #       -most percentage of scores > 3
-    #   2. If no rating is given, then look for users who liked the recipe and recommend their top recipe
-    #       -Time how long they are on the page, if > x time they made the recipe. If less, they did not makke it
-    #       -Take all users who gave recipe 4 or 5 and find all their other 4's and 5's then see what 3 recipies had the most high scores
-    #   3. Update according to the nearest 10 of those neighbors
-    #   4. Start giving scores for recipes based on user preferences as well as users also liked
-    #       - Calcualte ocmpatibility by giving them our predicted score for any given recipe
-    #   5. recommend similar reciepes as well  based on similar ingredients
-    #       - Identifying main carb or protien then listing as similar
 
 
 
@@ -235,6 +221,60 @@ if __name__=='__main__':
     user_id = 'Christian'
     christian = User(unique_ingredients, user_id, recipe_list) 
     
+    def nn(matrix):
+        neighbors = NearestNeighbors()
+        neighbors.fit(user_ingredients_matrix)
+        ingredients_matrix = matrix
+
+        ingredients_matrix = np.array(ingredients_matrix, dtype = float).reshape(1,-1)
+        # print(ingredients_matrix.shape)
+        nearest_neighbors = (neighbors.kneighbors(ingredients_matrix, 10)[1])[0]
+        #we need nearest_neighbors[1] to get the user numbers to update from
+        # print('nearestneighbors', nearest_neighbors)
+        return nearest_neighbors
+
+    def nn_update(array, nearest_neighbors):
+        for i in range(len(nearest_neighbors)):
+            k = nearest_neighbors[i]
+            scores = userBase[k]
+            array = np.vstack((array, scores))
+        
+        updated_scores = np.mean(array, axis=0)
+        return updated_scores
+    
+    array = christian.taste_profile_weights
+    for i in range(10):
+        print("update: " + str(i))
+        print(array)
+        nearest_neighbors = nn(christian.taste_profile_weights)
+        print(nearest_neighbors[1])
+        array = nn_update(array, nearest_neighbors)
+
+
+
+    # def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
+    #     num_points = matrix.shape[0]
+    
+    #     for _ in range(iterations):
+    #         # Calculate pairwise Euclidean distances between points using broadcasting
+    #         distances = np.linalg.norm(matrix[:, np.newaxis, :] - matrix, axis=2)
+            
+    #         # Set diagonal elements to infinity to exclude self-distances
+    #         np.fill_diagonal(distances, np.inf)
+            
+    #         # Find the index of the nearest neighbor for each point
+    #         nearest_neighbors = np.argmin(distances, axis=1)
+            
+    #         # Update each point towards its nearest neighbor
+    #         for i in range(num_points):
+    #             neighbor_index = nearest_neighbors[i]
+    #             direction = matrix[neighbor_index] - matrix[i]
+    #             matrix[i] += learning_rate * direction
+                
+    #     return matrix
+    
+    
+    # TODO: Use matrix factorization to recommend recipies not tried
     user_id = 'Josh'
     josh = User(unique_ingredients, user_id, recipe_list)
     # print(josh.taste_profile_dict)
@@ -242,3 +282,12 @@ if __name__=='__main__':
     # print(josh.taste_profile_weights)
 
     # os.remove(pickle_recipes)
+
+        # TODO: Steps: 
+    #   1. Recommend most popular recipe using matrix factorization on the user score set
+    #   2. if they spend more than 10 mins on  the recipe page, and no rating given, asssume recipe made and assign score based on ingredient scores
+    #   4. Start giving scores for recipes based on user preferences as well as users also liked
+    #       - Calcualte ocmpatibility by giving them our predicted score for any given recipe
+    #   5. recommend similar reciepes as well  based on similar ingredients
+    #       - Identifying main carb or protien then listing as similar
+    #   6. 
