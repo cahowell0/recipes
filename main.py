@@ -54,7 +54,7 @@ if __name__=='__main__':
         with open(url_file, 'rb') as infile:
             url_list = pickle.load(infile)
             url_list.append(breaddress)
-    
+
     # Scrape all recipes, or load if already scraped
     if not os.path.exists(pickle_recipes):
         # Scrape each url
@@ -75,52 +75,23 @@ if __name__=='__main__':
         with open(pickle_recipes, 'rb') as infile:
             recipe_list = pickle.load(infile)
         print('Loaded recipes')
-    
 
     # Get all unique ingredients
-    unique_ingredients = utils.get_unique_ingredients(recipe_list)
-    utils.set_ingredients_matrix(recipe_list, unique_ingredients)
+    unique_ingredients = set()
+    for recipe in recipe_list:
+        unique_ingredients.update(list(recipe.ingredients.keys()))
+    unique_ingredients = sorted(unique_ingredients)
+    
+    for recipe in recipe_list:
+        recipe.set_ingredients(unique_ingredients)
 
     recipes_ingredients_matrix = utils.get_recipes_ingredients_matrix(recipe_list, len(unique_ingredients))
-    with open('new_text.txt', 'w') as file:
-        np.savetxt(file, recipes_ingredients_matrix)
-
-    # print(recipes_ingredients_matrix)
-    user_list = []
-    for i in range(10):
-        user_list.append(User(unique_ingredients, i, recipe_list))
     
 
-    def dictionary_user_scores():
-        key_names = [recipe_list[i].recipe_name for i in range(len(recipe_list))]
-        subkey_names = (f"score{i}" for i in range (1,6))
+    #####################################################################
+    #####################################################################
+    #####################################################################
 
-        my_dict = {key: {subkey: 0} for subkey in subkey_names for key in key_names}
-
-        return my_dict
-
-
-    # print(user_list[0].taste_profile_dict)
-    def assign_user_scores(user_ingredient_score):
-        user_ingredient_score = []
-        for recipe in recipe_list:
-            for user in user_list:
-                recipe_score = np.sum(recipe.ingredients_matrix * user.taste_profile_weights) / np.sum(recipe.ingredients_matrix)
-                if recipe_score <= 0.15:
-                    recipe_rating = 1
-                elif recipe_score <= 0.3:
-                    recipe_rating = 2
-                elif recipe_score <= 0.5:
-                    recipe_rating = 3
-                elif recipe_score <= 0.75:
-                    recipe_rating = 4
-                else:
-                    recipe_rating = 5
-                
-                user.recipe_scores[recipe.recipe_name] = recipe_rating
-            # print(user.recipe_scores[recipe.recipe_name]) 
-
-    # print(user_ingredient_score)
 
     # TODO: maybe just delete this if the sklearn thig works
     """def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
@@ -193,63 +164,65 @@ if __name__=='__main__':
         return filled_matrix"""
 
     # TODO: create a test set of matricies and initialize a new user to test
+
+    # Create 1000 random users
+    user_base = []
+    for i in range(100):
+        user_base.append(User(unique_ingredients, f'user_{i}', recipe_list))
+
+
+    def dictionary_user_scores():
+        # I don't completely remember the purpose of this dictionary
+        # Did we want to know how many users rated each recipe 1-5?
+        # Or did we want to know _which_ users rated each recipe 1-5?
+
+
+        # Get names of all recipes
+        key_names = [recipe_list[i].recipe_name for i in range(len(recipe_list))]
+        subkey_names = [f"{i} stars" for i in range (1, 6)]   # Ratings given by users
+
+        # This allows us to find how many (or which users) rated each recipe 1-5 stars
+        my_dict = {key: {subkey: 0 for subkey in subkey_names} for key in key_names}
+
+        return my_dict
     
-    #create 10000 random users
-    userBase = list()
-    for i in range(1000):
-        userBase.append(np.random.rand((len(unique_ingredients))))
-        i += 1
+    # Initialize recipe scores for each user based on ingredient scores
+    for user in user_base:
+        user.ingredient_to_recipe_score_conversion(recipe_list)
 
-    #make the random taste preferences into a matrix
-    user_ingredients_matrix = np.zeros(len(unique_ingredients))   # Placeholder that will be deleted later
-    for user in userBase:
-        # Create matrix where each row containg the users preference for individual recipes
-        user_ingredients_matrix = np.vstack((user_ingredients_matrix, user))
-
-    # Delete the first row of zeros
-    user_ingredients_matrix = np.delete(user_ingredients_matrix, (0), axis=0)
-    # print(user_ingredients_matrix)
-
-    # TODO: If it seems to work for a genral case, brianstorm some edge cases that we can use to AB test the algorithm
+    users_ingredients_matrix = utils.get_users_ingredients_matrix(user_base, len(unique_ingredients))
 
 
+    
+    #####################################################################
+    #####################################################################
+    #####################################################################
 
 
-
-
-    # USER STUFF
     user_id = 'Christian'
     christian = User(unique_ingredients, user_id, recipe_list) 
-    
-    def nn(matrix):
+
+    def find_k_neighbors(user_ingredient_weights, users_ingredients_matrix, num_neighbors=10):
+        # Find the k neighbors with the closest ingredeients taste profile to new user
         neighbors = NearestNeighbors()
-        neighbors.fit(user_ingredients_matrix)
-        ingredients_matrix = matrix
+        neighbors.fit(users_ingredients_matrix)
 
-        ingredients_matrix = np.array(ingredients_matrix, dtype = float).reshape(1,-1)
-        # print(ingredients_matrix.shape)
-        nearest_neighbors = (neighbors.kneighbors(ingredients_matrix, 10)[1])[0]
-        #we need nearest_neighbors[1] to get the user numbers to update from
-        # print('nearestneighbors', nearest_neighbors)
+        ingredients_matrix = np.array(user_ingredient_weights, dtype=float).reshape(1,-1)   # Convert list of ingredient weights to np.array of appropriate size
+        nearest_neighbors = neighbors.kneighbors(ingredients_matrix, num_neighbors)[1][0]   # Get just the indices of the nearest neighbors
         return nearest_neighbors
-
-    def nn_update(array, nearest_neighbors):
-        for i in range(len(nearest_neighbors)):
-            k = nearest_neighbors[i]
-            scores = userBase[k]
-            array = np.vstack((array, scores))
-        
-        updated_scores = np.mean(array, axis=0)
-        return updated_scores
     
-    array = christian.taste_profile_weights
-    for i in range(10):
-        print("update: " + str(i))
-        print(array)
-        nearest_neighbors = nn(christian.taste_profile_weights)
-        print(nearest_neighbors[1])
-        array = nn_update(array, nearest_neighbors)
+    k_neighbors = find_k_neighbors(christian.ingredient_weights, users_ingredients_matrix)
 
+    def update_ingredient_scores(user_ingredient_weights, k_neighbors):
+        # Update user's ingredient taste profile to be closer to that of their k nearest neighbors
+        neighbors_scores_matrix = user_ingredient_weights
+        for i in range(len(k_neighbors)):
+            neighbor_scores = user_base[k_neighbors[i]].ingredient_weights
+            neighbors_scores_matrix = np.vstack((neighbors_scores_matrix, neighbor_scores))
+        updated_scores = np.mean(neighbors_scores_matrix, axis=0)
+        return updated_scores
+
+    christian.ingredient_weights = update_ingredient_scores(christian.ingredient_weights, k_neighbors)
 
 
     # def nearest_neighbor_update(matrix, iterations=100, learning_rate=0.1):
@@ -275,6 +248,7 @@ if __name__=='__main__':
     
     
     # TODO: Use matrix factorization to recommend recipies not tried
+
     user_id = 'Josh'
     josh = User(unique_ingredients, user_id, recipe_list)
     # print(josh.taste_profile_dict)

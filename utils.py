@@ -2,28 +2,6 @@ import pickle
 import numpy as np
 import recipe_crawler as rc
 
-def get_unique_ingredients(recipe_list):
-    """Gets list of unique ingredients, without duplicates
-    
-    Parameters:
-        recipe_list (list): list containing Recipe objects
-    """
-    unique_ingredients = set()
-    for recipe in recipe_list:
-        unique_ingredients.update(list(recipe.ingredients.keys()))
-
-    return sorted(list(unique_ingredients))
-
-def set_ingredients_matrix(recipe_list, unique_ingredients):
-    """Creates ingredients matrix attribute for each recipe
-    
-    Parameters:
-        recipe_list (list): list containing Recipe objects
-        unique_ingredients (list): list containing all ingredients in all recipes
-    """
-    for recipe in recipe_list:
-        recipe.set_ingredients(unique_ingredients)
-
 def get_recipes_ingredients_matrix(recipe_list, num_unique_ingredients):
     """Creates matrix of all recipes with the ingredients that they contain
     
@@ -51,7 +29,7 @@ def get_users_ingredients_matrix(user_list, num_unique_ingredients):
     user_ingredients_matrix = np.zeros(num_unique_ingredients)   # Placeholder that will be deleted later
     for user in user_list:
         # Create matrix where each row containg the users preference for individual recipes
-        user_ingredients_matrix = np.vstack((user_ingredients_matrix, user.taste_profile_weights))
+        user_ingredients_matrix = np.vstack((user_ingredients_matrix, user.ingredient_weights))
 
     # Delete the first row of zeros
     user_ingredients_matrix = np.delete(user_ingredients_matrix, (0), axis=0)

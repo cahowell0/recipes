@@ -161,14 +161,6 @@ class Recipe():
         instructions = [instruction.text for instruction in instructions_html]
 
         return instructions   # Skip the first
-
-    def __str__(self):
-        name_str = f'RECIPE NAME: {self.recipe_name}'
-        num_ingredients_str = f'NUM INGREDIENTS: {self.num_ingredients}'
-        num_instructions_str = f'NUM INSTRUCTIONS: {self.num_instructions}'
-
-
-        return f'{name_str}\n{num_ingredients_str}\n{num_instructions_str}'
         
     def set_ingredients(self, unique_ingredients):
         self.ingredients_matrix = np.zeros(len(unique_ingredients))
@@ -176,3 +168,10 @@ class Recipe():
         for i, ingredient in enumerate(unique_ingredients):
             if ingredient in self.ingredients:
                 self.ingredients_matrix[i] = 1
+
+    def __str__(self):
+        name_str = f'RECIPE NAME: {self.recipe_name}'
+        num_ingredients_str = f'NUM INGREDIENTS: {self.num_ingredients}'
+        num_instructions_str = f'NUM INSTRUCTIONS: {self.num_instructions}'
+
+        return f'{name_str}\n{num_ingredients_str}\n{num_instructions_str}'
